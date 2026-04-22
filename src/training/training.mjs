@@ -1,3 +1,4 @@
+/* vim: set tabstop=2 shiftwidth=2: */
 import {
   exposeAsGlobal,
   getElement,
@@ -425,22 +426,22 @@ function updateScores() {
 }
 
 /** @type {Promise<EvalResults>} */
-let cometScores;
-function getCometScores() {
-  if (cometScores) {
-    return cometScores;
+let cometScores = {};
+function getCometScores(langPair) {
+  console.log("cometscores", cometScores);
+  if (cometScores[langPair]) {
+    return cometScores[langPair];
   }
-  cometScores = _getCometScores();
-  return cometScores;
+  cometScores[langPair] = _getCometScores(langPair);
+  return cometScores[langPair];
 }
 
 /**
  * @returns {Promise<EvalResults>}
  */
-async function _getCometScores() {
-  const response = await fetch(
-    'https://raw.githubusercontent.com/mozilla/firefox-translations-models/main/evaluation/comet-results.json',
-  );
+async function _getCometScores(langPair) {
+  const url = `https://storage.googleapis.com/moz-fx-translations-data--303e-prod-translations-data/final-evals/${langPair}__flores200-plus__google__v2__latest__comet22.metrics.json`
+  const response = await fetch(url,);
 
   return await response.json();
 }
@@ -478,13 +479,13 @@ async function _getCometScores() {
  * @param {string} taskId
  */
 async function updateCometTD(td, langPair, score, provider, dataset, taskId) {
-  const cometResults = await getCometScores();
+  const cometResults = await getCometScores(langPair);
   while (td.lastChild) {
     td.removeChild(td.lastChild);
   }
 
   let percentageDisplay;
-  const googleScore = cometResults[langPair]?.['flores-test']?.['google'];
+  const googleScore = cometResults['score'];
   // const googleScore = getAverageGoogleCometScore(cometResults, langPair);
   const percentage = 100 * (1 - googleScore / score);
   const sign = percentage >= 0 ? '+' : '';
